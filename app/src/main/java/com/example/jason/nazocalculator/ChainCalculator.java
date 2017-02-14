@@ -1,5 +1,7 @@
 package com.example.jason.nazocalculator;
 
+import java.util.ArrayList;
+
 /**
  * 連鎖配列を計算
  */
@@ -20,10 +22,8 @@ class ChainCalculator {
      *
      * @return 連鎖配列
      */
-    int[][][] getAnswer() {
-        int count = 0;
-        final int maxNum = 100;
-        final int[][][] answer = new int[maxNum][mMainField.length][mMainField[0].length];
+    ArrayList<int[][]> getAnswer() {
+        final ArrayList<int[][]> answer = new ArrayList<>();
         final int[] nodes;
         switch (mClearCondition.getCondition()) {
             case ALL:
@@ -39,35 +39,26 @@ class ChainCalculator {
                 nodes = getChainAllAnswerNodes(mMainField, mNextField, mClearCondition.getNum());
                 break;
             default:
-                nodes = new int[mNextField.length / 2];
-                break;
+                return null;
         }
 
-        answer[count] = copyArray(mMainField);
-        count++;
+        answer.add(mMainField);
         for (int index : nodes) {
             putPuyo(mMainField, mNextField, index);
-            answer[count] = copyArray(mMainField);
-            count++;
+            answer.add(mMainField);
 
             while (true) {
+                final int[][] preField = copyArray(mMainField);
                 dropPuyo(mMainField);
-                answer[count] = copyArray(mMainField);
-                count++;
-                if (deletePuyo(mMainField)) {
-                    answer[count] = copyArray(mMainField);
-                    count++;
+                answer.add(mMainField);
+                if (deletePuyo(mMainField, preField)) {
+                    answer.add(mMainField);
                 } else {
                     break;
                 }
             }
         }
-
-        final int[][][] customAnswer = new int[count][answer[0].length][answer[0][0].length];
-        for (int index = 0; index < count; index++) {
-            customAnswer[index] = copyArray(answer[index]);
-        }
-        return customAnswer;
+        return answer;
     }
 
     /*
@@ -154,7 +145,6 @@ class ChainCalculator {
 
                 if (subChainNum > 0 && subChainNum >= chainNum) {
                     maxNodes = copyArray(nodes);
-                    stepNextNode(nodes, index);
                     break search;
                 }
             }
@@ -185,7 +175,6 @@ class ChainCalculator {
 
                 if (subChainNum > 0 && subChainNum >= chainNum && isAllClear(mainField)) {
                     maxNodes = copyArray(nodes);
-                    stepNextNode(nodes, index);
                     break search;
                 }
             }
@@ -232,8 +221,9 @@ class ChainCalculator {
         int chainNum = 0;
 
         while (true) {
+            final int[][] preField = copyArray(main);
             dropPuyo(main);
-            if (deletePuyo(main)) {
+            if (deletePuyo(main, preField)) {
                 chainNum++;
             } else {
                 break;
@@ -292,10 +282,7 @@ class ChainCalculator {
      * @return 設置したかを返却
      */
     private static boolean putPuyo(final int[][] main, final int[] next, int place) {
-        final int NONE = 0;
-
-        // ネクストがない場合
-        if (next[0] == NONE || next[1] == NONE) {
+        if (next[0] == 0 || next[1] == 0) {
             return false;
         }
 
@@ -306,7 +293,7 @@ class ChainCalculator {
             case 3:
             case 4:
             case 5:
-                if (main[place][0] == NONE && main[place][1] == NONE) {
+                if (main[place][0] == 0 && main[place][1] == 0) {
                     main[place][0] = next[0];
                     main[place][1] = next[1];
                     stepNextArray(next);
@@ -320,7 +307,7 @@ class ChainCalculator {
             case 10:
             case 11:
                 place -= 6;
-                if (main[place][0] == NONE && main[place][1] == NONE) {
+                if (main[place][0] == 0 && main[place][1] == 0) {
                     main[place][0] = next[1];
                     main[place][1] = next[0];
                     stepNextArray(next);
@@ -333,7 +320,7 @@ class ChainCalculator {
             case 15:
             case 16:
                 place -= 12;
-                if (main[place][0] == NONE && main[place + 1][0] == NONE) {
+                if (main[place][0] == 0 && main[place + 1][0] == 0) {
                     main[place][0] = next[0];
                     main[place + 1][0] = next[1];
                     stepNextArray(next);
@@ -346,7 +333,7 @@ class ChainCalculator {
             case 20:
             case 21:
                 place -= 17;
-                if (main[place][0] == NONE && main[place + 1][0] == NONE) {
+                if (main[place][0] == 0 && main[place + 1][0] == 0) {
                     main[place][0] = next[1];
                     main[place + 1][0] = next[0];
                     stepNextArray(next);
@@ -378,18 +365,17 @@ class ChainCalculator {
      * @param field フィールド
      */
     private static void dropPuyo(final int[][] field) {
-        final int NONE = 0;
         int empty;
 
         for (int x = 0; x < field.length; x++) {
             empty = -1;
 
             for (int y = field[0].length - 1; y >= 0; y--) {
-                if (empty != -1 && field[x][y] != NONE) {
+                if (empty != -1 && field[x][y] != 0) {
                     field[x][empty] = field[x][y];
                     field[x][y] = 0;
                     empty--;
-                } else if (empty == -1 && field[x][y] == NONE) {
+                } else if (empty == -1 && field[x][y] == 0) {
                     empty = y;
                 }
             }
@@ -404,14 +390,14 @@ class ChainCalculator {
      * @param main メイン配列
      * @return 消去したかを返却
      */
-    private static boolean deletePuyo(final int[][] main) {
+    private static boolean deletePuyo(final int[][] main, final int[][] preField) {
         final int DELETE_NUM = 4;
         boolean isDelete = false;
         boolean[][] connect;
 
         for (int x = 0; x < main.length; x++) {
             for (int y = 0; y < main[0].length; y++) {
-                if (main[x][y] > 0) {
+                if (main[x][y] > 0 && main[x][y] != preField[x][y]) {
                     connect = new boolean[main.length][main[0].length];
                     if (addConnectArray(main, connect, x, y, 1) >= DELETE_NUM) {
                         isDelete = true;

@@ -9,6 +9,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity implements AlertDialogFragment.OnDialogClickListener {
 
     private static final int MAIN_WIDTH = 6;
@@ -22,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
     private Puyo mCheckedPuyo = Puyo.NONE;
     private ClearCondition mClearCondition;
     private int mAnswerIndex = 0;
-    private int[][][] mAnswer;
+    private ArrayList<int[][]> mAnswer;
 
     private LinearLayout mMainLayout;
     private LinearLayout mNextLayout;
@@ -121,16 +123,16 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         previousButton.setOnClickListener((View v) -> {
             if (mAnswer != null && mAnswerIndex > 0) {
                 mAnswerIndex--;
-                mMainField = convertField(mAnswer[mAnswerIndex]);
+                mMainField = convertField(mAnswer.get(mAnswerIndex));
                 setFieldLayout(mMainLayout, mMainField);
             }
         });
 
         final ImageButton nextButton = (ImageButton) findViewById(R.id.controller_skip_next);
         nextButton.setOnClickListener((View v) -> {
-            if (mAnswer != null && mAnswerIndex < mAnswer.length - 1) {
+            if (mAnswer != null && mAnswerIndex < mAnswer.size() - 1) {
                 mAnswerIndex++;
-                mMainField = convertField(mAnswer[mAnswerIndex]);
+                mMainField = convertField(mAnswer.get(mAnswerIndex));
                 setFieldLayout(mMainLayout, mMainField);
             }
         });
@@ -138,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         final ImageButton returnButton = (ImageButton) findViewById(R.id.controller_return);
         returnButton.setOnClickListener((View v) -> {
             // フィールドを最初の状態に戻す
-            mMainField = convertField(mAnswer[0]);
+            mMainField = convertField(mAnswer.get(0));
             setFieldLayout(mMainLayout, mMainField);
 
             mAnswer = null;
