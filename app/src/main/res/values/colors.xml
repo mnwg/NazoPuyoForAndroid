@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="puyo_red">#F44336</color>
+    <color name="puyo_blue">#2196F3</color>
+    <color name="puyo_green">#4CAF50</color>
+    <color name="puyo_yellow">#FFEB3B</color>
+    <color name="puyo_purple">#9C27B0</color>
+    <color name="puyo_ojama">#BDBDBD</color>
+    <color name="puyo_kata">#9E9E9E</color>
+    <color name="field_frame">#EFEBE9</color>
+    <color name="field_background">#FFFFFF</color>
+    <color name="main_controller">#3E2723</color>
+    <color name="main_background">#5D4037</color>
+</resources>

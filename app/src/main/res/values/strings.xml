@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">NazoCalc</string>
+
+    <string name="toast_no_next">初めのツモがセットされていません</string>
+    <string name="toast_contain_ojama">ネクストにおじゃまぷよが含まれています</string>
+    <string name="toast_contain_kata">ネクストに固ぷよが含まれています</string>
+    <string name="toast_one_side_puyo">片側のみのツモがあります</string>
+    <string name="toast_divide_puyo">ネクストが分離しています</string>
+
+    <string name="dialog_positive">実行</string>
+    <string name="dialog_negative">取消</string>
+    <string name="dialog_get_chain_message">連鎖を取得しますか？</string>
+    <string name="dialog_delete_message">盤面を初期化しますか？</string>
+</resources>
