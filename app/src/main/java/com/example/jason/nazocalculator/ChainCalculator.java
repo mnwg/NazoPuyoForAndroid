@@ -24,35 +24,19 @@ class ChainCalculator {
      */
     ArrayList<int[][]> getAnswer() {
         final ArrayList<int[][]> answer = new ArrayList<>();
-        final int[] nodes;
-        switch (mClearCondition.getCondition()) {
-            case ALL:
-                nodes = getAllAnswerNodes(mMainField, mNextField);
-                break;
-            case SOME_PUYO_ALL:
-                nodes = getPuyoAllAnswerNodes(mMainField, mNextField, mClearCondition.getNum());
-                break;
-            case CHAIN_NUM:
-                nodes = getChainAnswerNodes(mMainField, mNextField, mClearCondition.getNum());
-                break;
-            case CHAIN_NUM_ALL:
-                nodes = getChainAllAnswerNodes(mMainField, mNextField, mClearCondition.getNum());
-                break;
-            default:
-                return null;
-        }
+        final int[] nodes = getAnswerNodes(mMainField, mNextField, mClearCondition);
 
-        answer.add(mMainField);
+        answer.add(copyArray(mMainField));
         for (int index : nodes) {
-            putPuyo(mMainField, mNextField, index);
-            answer.add(mMainField);
+            PuyoController.putPuyo(mMainField, mNextField, index);
+            answer.add(copyArray(mMainField));
 
             while (true) {
                 final int[][] preField = copyArray(mMainField);
-                dropPuyo(mMainField);
-                answer.add(mMainField);
-                if (deletePuyo(mMainField, preField)) {
-                    answer.add(mMainField);
+                PuyoController.dropPuyo(mMainField);
+                answer.add(copyArray(mMainField));
+                if (PuyoController.deletePuyo(mMainField, preField)) {
+                    answer.add(copyArray(mMainField));
                 } else {
                     break;
                 }
@@ -61,128 +45,58 @@ class ChainCalculator {
         return answer;
     }
 
-    /*
-        クリア条件ごとの連鎖計算
-     */
-
     /**
-     * 全消し状態となるノードを返却
+     * クリア条件を満たすノードを返却
      *
-     * @return 全消し状態となるノード
+     * @param main      メイン配列
+     * @param next      ネクスト
+     * @param condition クリア条件
+     * @return クリア条件を満たすノード
      */
-    static int[] getAllAnswerNodes(final int[][] main, final int[] next) {
+    static int[] getAnswerNodes(final int[][] main, final int[] next, final ClearCondition condition) {
         final int maxNodeNum = 21;
         final int[] nodes = new int[next.length / 2];
-        int[] maxNodes = new int[nodes.length];
-        int[][] mainField = copyArray(main);
-        int[] nextField = copyArray(next);
+        final int clearNum = condition.getNum();
+        final ClearCondition.Condition clearCondition = condition.getCondition();
+        int subChainNum;
+        int[][] subMain = copyArray(main);
+        int[] subNext = copyArray(next);
 
         search:
         while (nodes[0] <= maxNodeNum) {
             for (int index = 0; index < nodes.length; index++) {
-                putPuyo(mainField, nextField, nodes[index]);
-                getChainNum(mainField);
+                PuyoController.putPuyo(subMain, subNext, nodes[index]);
+                subChainNum = getChainNum(subMain);
 
-                if (isAllClear(mainField)) {
-                    maxNodes = copyArray(nodes);
-                    break search;
+                switch (clearCondition) {
+                    case ALL:
+                        if (isAllClear(subMain)) break search;
+                        break;
+                    case SOME_PUYO_ALL:
+                        if (isColorClear(subMain, clearNum)) break search;
+                        break;
+                    case CHAIN_NUM:
+                        if (subChainNum >= clearNum) break search;
+                        break;
+                    case CHAIN_NUM_ALL:
+                        if (subChainNum >= clearNum && isAllClear(subMain)) break search;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("ClearCondition is not correct");
                 }
+
+//                if (subChainNum > 0) {
+//                    subMain = copyArray(main);
+//                    subNext = copyArray(next);
+//                    stepNextNode(nodes, index);
+//                    continue search;
+//                }
             }
-            mainField = copyArray(main);
-            nextField = copyArray(next);
+            subMain = copyArray(main);
+            subNext = copyArray(next);
             stepNextNode(nodes, nodes.length - 1);
         }
-        return maxNodes;
-    }
-
-    /**
-     * 指定の色が全消しとなるノードを返却
-     *
-     * @return 指定の色が全消しとなるノード
-     */
-    static int[] getPuyoAllAnswerNodes(final int[][] main, final int[] next, final int color) {
-        final int maxNodeNum = 21;
-        final int[] nodes = new int[next.length / 2];
-        int[] maxNodes = new int[nodes.length];
-        int[][] mainField = copyArray(main);
-        int[] nextField = copyArray(next);
-
-        search:
-        while (nodes[0] <= maxNodeNum) {
-            for (int index = 0; index < nodes.length; index++) {
-                putPuyo(mainField, nextField, nodes[index]);
-                getChainNum(mainField);
-
-                if (isColorClear(mainField, color)) {
-                    maxNodes = copyArray(nodes);
-                    break search;
-                }
-            }
-            mainField = copyArray(main);
-            nextField = copyArray(next);
-            stepNextNode(nodes, nodes.length - 1);
-        }
-        return maxNodes;
-    }
-
-    /**
-     * 指定の連鎖数となるノードを返却
-     *
-     * @return 指定の連鎖数となるノード
-     */
-    static int[] getChainAnswerNodes(final int[][] main, final int[] next, final int chainNum) {
-        final int maxNodeNum = 21;
-        final int[] nodes = new int[next.length / 2];
-        int[] maxNodes = new int[nodes.length];
-        int[][] mainField = copyArray(main);
-        int[] nextField = copyArray(next);
-
-        search:
-        while (nodes[0] <= maxNodeNum) {
-            for (int index = 0; index < nodes.length; index++) {
-                putPuyo(mainField, nextField, nodes[index]);
-                final int subChainNum = getChainNum(mainField);
-
-                if (subChainNum > 0 && subChainNum >= chainNum) {
-                    maxNodes = copyArray(nodes);
-                    break search;
-                }
-            }
-            mainField = copyArray(main);
-            nextField = copyArray(next);
-            stepNextNode(nodes, nodes.length - 1);
-        }
-        return maxNodes;
-    }
-
-    /**
-     * 指定の連鎖数＋全消し状態となるノードを返却
-     *
-     * @return 指定の連鎖数＋全消し状態となるノード
-     */
-    static int[] getChainAllAnswerNodes(final int[][] main, final int[] next, final int chainNum) {
-        final int maxNodeNum = 21;
-        final int[] nodes = new int[next.length / 2];
-        int[] maxNodes = new int[nodes.length];
-        int[][] mainField = copyArray(main);
-        int[] nextField = copyArray(next);
-
-        search:
-        while (nodes[0] <= maxNodeNum) {
-            for (int index = 0; index < nodes.length; index++) {
-                putPuyo(mainField, nextField, nodes[index]);
-                final int subChainNum = getChainNum(mainField);
-
-                if (subChainNum > 0 && subChainNum >= chainNum && isAllClear(mainField)) {
-                    maxNodes = copyArray(nodes);
-                    break search;
-                }
-            }
-            mainField = copyArray(main);
-            nextField = copyArray(next);
-            stepNextNode(nodes, nodes.length - 1);
-        }
-        return maxNodes;
+        return nodes;
     }
 
     /**
@@ -205,10 +119,6 @@ class ChainCalculator {
         }
     }
 
-    /*
-        その他メソッド
-     */
-
     /**
      * 指定フィールドの連鎖数を返却
      * <p>
@@ -222,8 +132,8 @@ class ChainCalculator {
 
         while (true) {
             final int[][] preField = copyArray(main);
-            dropPuyo(main);
-            if (deletePuyo(main, preField)) {
+            PuyoController.dropPuyo(main);
+            if (PuyoController.deletePuyo(main, preField)) {
                 chainNum++;
             } else {
                 break;
@@ -266,235 +176,6 @@ class ChainCalculator {
         }
         return true;
     }
-
-    /*
-        ぷよ操作メソッド
-     */
-
-    /**
-     * ぷよを指定位置に設置。設置できない場合{@code false}を返却
-     * <p>
-     * ネクスト配列も更新
-     *
-     * @param main  メイン配列
-     * @param next  ネクスト配列
-     * @param place 設置場所
-     * @return 設置したかを返却
-     */
-    private static boolean putPuyo(final int[][] main, final int[] next, int place) {
-        if (next[0] == 0 || next[1] == 0) {
-            return false;
-        }
-
-        switch (place) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                if (main[place][0] == 0 && main[place][1] == 0) {
-                    main[place][0] = next[0];
-                    main[place][1] = next[1];
-                    stepNextArray(next);
-                    return true;
-                }
-                break;
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-                place -= 6;
-                if (main[place][0] == 0 && main[place][1] == 0) {
-                    main[place][0] = next[1];
-                    main[place][1] = next[0];
-                    stepNextArray(next);
-                    return true;
-                }
-                break;
-            case 12:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-                place -= 12;
-                if (main[place][0] == 0 && main[place + 1][0] == 0) {
-                    main[place][0] = next[0];
-                    main[place + 1][0] = next[1];
-                    stepNextArray(next);
-                    return true;
-                }
-                break;
-            case 17:
-            case 18:
-            case 19:
-            case 20:
-            case 21:
-                place -= 17;
-                if (main[place][0] == 0 && main[place + 1][0] == 0) {
-                    main[place][0] = next[1];
-                    main[place + 1][0] = next[0];
-                    stepNextArray(next);
-                    return true;
-                }
-                break;
-            default:
-                throw new IllegalArgumentException("put place is incorrect");
-        }
-        return false;
-    }
-
-    /**
-     * ネクスト配列更新
-     *
-     * @param next ネクスト配列
-     */
-    private static void stepNextArray(final int[] next) {
-        final int NEXT_NUM = 2;
-
-        System.arraycopy(next, 2, next, 0, next.length - NEXT_NUM);
-        next[next.length - 2] = 0;
-        next[next.length - 1] = 0;
-    }
-
-    /**
-     * ぷよを落下
-     *
-     * @param field フィールド
-     */
-    private static void dropPuyo(final int[][] field) {
-        int empty;
-
-        for (int x = 0; x < field.length; x++) {
-            empty = -1;
-
-            for (int y = field[0].length - 1; y >= 0; y--) {
-                if (empty != -1 && field[x][y] != 0) {
-                    field[x][empty] = field[x][y];
-                    field[x][y] = 0;
-                    empty--;
-                } else if (empty == -1 && field[x][y] == 0) {
-                    empty = y;
-                }
-            }
-        }
-    }
-
-    /**
-     * 4連結以上のぷよを消去。消去していない場合{@code false}を返却
-     * <p>
-     * おじゃまぷよも巻き込んで消去
-     *
-     * @param main メイン配列
-     * @return 消去したかを返却
-     */
-    private static boolean deletePuyo(final int[][] main, final int[][] preField) {
-        final int DELETE_NUM = 4;
-        boolean isDelete = false;
-        boolean[][] connect;
-
-        for (int x = 0; x < main.length; x++) {
-            for (int y = 0; y < main[0].length; y++) {
-                if (main[x][y] > 0 && main[x][y] != preField[x][y]) {
-                    connect = new boolean[main.length][main[0].length];
-                    if (addConnectArray(main, connect, x, y, 1) >= DELETE_NUM) {
-                        isDelete = true;
-                        deletePointPuyo(main, connect);
-                    }
-                }
-            }
-        }
-        return isDelete;
-    }
-
-    /**
-     * 連結配列にそってぷよを消去
-     * <p>
-     * まわりのおじゃまぷよも消去
-     *
-     * @param main    メイン配列
-     * @param connect 連結配列
-     */
-    private static void deletePointPuyo(final int[][] main, final boolean[][] connect) {
-        for (int x = 0; x < main.length; x++) {
-            for (int y = 0; y < main[0].length; y++) {
-                if (connect[x][y]) {
-                    main[x][y] = 0;
-                    deleteOjama(main, x, y);
-                }
-            }
-        }
-    }
-
-    /**
-     * 指定位置の連結配列を作成
-     *
-     * @param main    メイン配列
-     * @param connect 連結配列
-     * @param x       指定横位置
-     * @param y       指定縦位置
-     * @param count   連結数カウント
-     * @return 連結数
-     */
-    private static int addConnectArray(final int[][] main, final boolean[][] connect, final int x, final int y, int count) {
-        connect[x][y] = true;
-
-        // 左方向チェック
-        if (x > 0 && main[x - 1][y] == main[x][y] && !connect[x - 1][y]) {
-            count = addConnectArray(main, connect, x - 1, y, count + 1);
-        }
-        // 右方向チェック
-        if (x < main.length - 1 && main[x + 1][y] == main[x][y] && !connect[x + 1][y]) {
-            count = addConnectArray(main, connect, x + 1, y, count + 1);
-        }
-        // 上方向チェック
-        // 13段目考慮
-        if (y > 1 && main[x][y - 1] == main[x][y] && !connect[x][y - 1]) {
-            count = addConnectArray(main, connect, x, y - 1, count + 1);
-        }
-        // 下方向チェック
-        if (y < main[0].length - 1 && main[x][y + 1] == main[x][y] && !connect[x][y + 1]) {
-            count = addConnectArray(main, connect, x, y + 1, count + 1);
-        }
-        return count;
-    }
-
-    /**
-     * 指定位置と隣接するおじゃまぷよを消去
-     * <p>
-     * 固ぷよはおじゃまぷよに変換
-     *
-     * @param main メイン配列
-     * @param x    指定横位置
-     * @param y    指定縦位置
-     */
-    private static void deleteOjama(final int[][] main, final int x, final int y) {
-        // おじゃまぷよが-1、固ぷよが-2とする場合
-
-        // 上方向チェック
-        // 13段目考慮
-        if (y > 1 && main[x][y - 1] < 0) {
-            main[x][y - 1]++;
-        }
-        // 下方向チェック
-        if (y < main[0].length - 1 && main[x][y + 1] < 0) {
-            main[x][y + 1]++;
-        }
-        // 左方向チェック
-        if (x > 0 && main[x - 1][y] < 0) {
-            main[x - 1][y]++;
-        }
-        // 右方向チェック
-        if (x < main.length - 1 && main[x + 1][y] < 0) {
-            main[x + 1][y]++;
-        }
-    }
-
-    /*
-        配列操作メソッド
-     */
 
     /**
      * int配列をコピー

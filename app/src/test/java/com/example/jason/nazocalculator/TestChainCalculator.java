@@ -2,7 +2,7 @@ package com.example.jason.nazocalculator;
 
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * なぞぷよ実践テスト
@@ -92,7 +92,8 @@ public class TestChainCalculator {
     @Test
     public void test() throws Exception {
         long start = System.currentTimeMillis();
-        final int[] answer1 = ChainCalculator.getAllAnswerNodes(main1, next1);
+        final ClearCondition condition1 = new ClearCondition(ClearCondition.Condition.ALL, 0);
+        final int[] answer1 = ChainCalculator.getAnswerNodes(main1, next1, condition1);
         long end = System.currentTimeMillis();
         System.out.println("1: " + (end - start));
 
@@ -102,7 +103,8 @@ public class TestChainCalculator {
         assertEquals(answer1[3], 9);
 
         start = System.currentTimeMillis();
-        final int[] answer2 = ChainCalculator.getAllAnswerNodes(main2, next2);
+        final ClearCondition condition2 = new ClearCondition(ClearCondition.Condition.ALL, 0);
+        final int[] answer2 = ChainCalculator.getAnswerNodes(main2, next2, condition2);
         end = System.currentTimeMillis();
         System.out.println("2: " + (end - start));
 
@@ -112,7 +114,8 @@ public class TestChainCalculator {
         assertEquals(answer2[3], 8);
 
         start = System.currentTimeMillis();
-        final int[] answer3 = ChainCalculator.getPuyoAllAnswerNodes(main3, next3, -1);
+        final ClearCondition condition3 = new ClearCondition(ClearCondition.Condition.SOME_PUYO_ALL, -1);
+        final int[] answer3 = ChainCalculator.getAnswerNodes(main3, next3, condition3);
         end = System.currentTimeMillis();
         System.out.println("3: " + (end - start));
 
@@ -123,7 +126,8 @@ public class TestChainCalculator {
         assertEquals(answer3[4], 13);
 
         start = System.currentTimeMillis();
-        final int[] answer4 = ChainCalculator.getPuyoAllAnswerNodes(main4, next4, 1);
+        final ClearCondition condition4 = new ClearCondition(ClearCondition.Condition.SOME_PUYO_ALL, 1);
+        final int[] answer4 = ChainCalculator.getAnswerNodes(main4, next4, condition4);
         end = System.currentTimeMillis();
         System.out.println("4: " + (end - start));
 
@@ -133,7 +137,8 @@ public class TestChainCalculator {
         assertEquals(answer4[3], 18);
 
         start = System.currentTimeMillis();
-        final int[] answer5 = ChainCalculator.getChainAnswerNodes(main5, next5, 8);
+        final ClearCondition condition5 = new ClearCondition(ClearCondition.Condition.CHAIN_NUM, 8);
+        final int[] answer5 = ChainCalculator.getAnswerNodes(main5, next5, condition5);
         end = System.currentTimeMillis();
         System.out.println("5: " + (end - start));
 
@@ -143,7 +148,8 @@ public class TestChainCalculator {
         assertEquals(answer5[3], 7);
 
         start = System.currentTimeMillis();
-        final int[] answer6 = ChainCalculator.getChainAnswerNodes(main6, next6, 6);
+        final ClearCondition condition6 = new ClearCondition(ClearCondition.Condition.CHAIN_NUM, 6);
+        final int[] answer6 = ChainCalculator.getAnswerNodes(main6, next6, condition6);
         end = System.currentTimeMillis();
         System.out.println("6: " + (end - start));
 
@@ -153,7 +159,8 @@ public class TestChainCalculator {
         assertEquals(answer6[3], 1);
 
         start = System.currentTimeMillis();
-        final int[] answer7 = ChainCalculator.getChainAllAnswerNodes(main7, next7, 8);
+        final ClearCondition condition7 = new ClearCondition(ClearCondition.Condition.CHAIN_NUM_ALL, 8);
+        final int[] answer7 = ChainCalculator.getAnswerNodes(main7, next7, condition7);
         end = System.currentTimeMillis();
         System.out.println("7: " + (end - start));
 
@@ -163,7 +170,8 @@ public class TestChainCalculator {
         assertEquals(answer7[3], 16);
 
         start = System.currentTimeMillis();
-        final int[] answer8 = ChainCalculator.getChainAllAnswerNodes(main8, next8, 6);
+        final ClearCondition condition8 = new ClearCondition(ClearCondition.Condition.CHAIN_NUM_ALL, 6);
+        final int[] answer8 = ChainCalculator.getAnswerNodes(main8, next8, condition8);
         end = System.currentTimeMillis();
         System.out.println("8: " + (end - start));
 

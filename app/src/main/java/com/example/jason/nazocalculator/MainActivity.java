@@ -11,47 +11,51 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class MainActivity extends AppCompatActivity implements AlertDialogFragment.OnDialogClickListener {
 
-    private static final int MAIN_WIDTH = 6;
-    private static final int MAIN_HEIGHT = 13;
-    private static final int NEXT_WIDTH = 2;
-    private static final int NEXT_HEIGHT = 10;
     private static final int REQUEST_CODE_GET_CHAIN = 0;
     private static final int REQUEST_CODE_DELETE = 1;
-    private Puyo[][] mMainField = new Puyo[MAIN_WIDTH][MAIN_HEIGHT];
-    private Puyo[][] mNextField = new Puyo[NEXT_WIDTH][NEXT_HEIGHT];
+    private Puyo[][] mMainField = new Puyo[6][13];
+    private Puyo[][] mNextField = new Puyo[2][10];
     private Puyo mCheckedPuyo = Puyo.NONE;
     private ClearCondition mClearCondition;
-    private int mAnswerIndex = 0;
     private ArrayList<int[][]> mAnswer;
+    private int mAnswerTurn = 0;
 
-    private LinearLayout mMainLayout;
-    private LinearLayout mNextLayout;
-    private LinearLayout mSelectLayout;
-    private LinearLayout mControlLayout;
-    private LinearLayout mActionLayout;
+    @BindView(R.id.main_field)
+    LinearLayout mMainLayout;
+    @BindView(R.id.next_field)
+    LinearLayout mNextLayout;
+    @BindView(R.id.select_field)
+    LinearLayout mSelectLayout;
+    @BindView(R.id.controller_field)
+    LinearLayout mControlLayout;
+    @BindView(R.id.action_field)
+    LinearLayout mActionLayout;
+    @BindView(R.id.progress_bar)
+    LinearLayout mProgressBarLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        mMainLayout = (LinearLayout) findViewById(R.id.main_field);
-        mNextLayout = (LinearLayout) findViewById(R.id.next_field);
-        mSelectLayout = (LinearLayout) findViewById(R.id.select_field);
-        mControlLayout = (LinearLayout) findViewById(R.id.controller_field);
-        mActionLayout = (LinearLayout) findViewById(R.id.action_field);
+        // TODO: 非同期処理でプログレスバー表示
+        mProgressBarLayout.setVisibility(View.GONE);
+        // 連鎖取得までビュー非表示
+        mControlLayout.setVisibility(View.GONE);
 
-        initButton();
         initPuyoField(mMainField);
         initPuyoField(mNextField);
         setFieldLayout(mMainLayout, mMainField);
         setFieldLayout(mNextLayout, mNextField);
         setSelectField();
 
-        // 連鎖取得までビュー非表示
-        mControlLayout.setVisibility(View.GONE);
         // TODO: クリア条件設定作成
         mClearCondition = new ClearCondition(ClearCondition.Condition.ALL, 0);
     }
@@ -63,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
      * @param field        配列
      */
     private void setFieldLayout(final LinearLayout linearLayout, final Puyo[][] field) {
-        final int padding = 5;
+        final int PADDING = 5;
 
         linearLayout.removeAllViews();
         for (int y = 0; y < field[0].length; y++) {
@@ -75,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
 
                 imageView.setImageResource(field[x][y].getDrawable());
                 imageView.setBackgroundResource(R.drawable.background);
-                imageView.setPadding(padding, padding, padding, padding);
+                imageView.setPadding(PADDING, PADDING, PADDING, PADDING);
                 imageView.setOnClickListener((View view) -> {
                     field[subX][subY] = mCheckedPuyo;
                     imageView.setImageResource(mCheckedPuyo.getDrawable());
@@ -90,11 +94,11 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
      * ぷよの色選択画面を設定
      */
     private void setSelectField() {
-        final int divideNum = 2;
+        final int DIVIDENUM = 2;
 
-        for (int divide = 0; divide < divideNum; divide++) {
+        for (int divide = 0; divide < DIVIDENUM; divide++) {
             final LinearLayout linearLayout = new LinearLayout(this);
-            for (int index = Puyo.values().length / divideNum * divide; index < Puyo.values().length / divideNum * (divide + 1); index++) {
+            for (int index = Puyo.values().length / DIVIDENUM * divide; index < Puyo.values().length / DIVIDENUM * (divide + 1); index++) {
                 final ImageButton button = new ImageButton(this);
                 final Puyo puyo = Puyo.values()[index];
 
@@ -115,59 +119,54 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         }
     }
 
-    /**
-     * ボタン設定
-     */
-    private void initButton() {
-        final ImageButton previousButton = (ImageButton) findViewById(R.id.controller_skip_previous);
-        previousButton.setOnClickListener((View v) -> {
-            if (mAnswer != null && mAnswerIndex > 0) {
-                mAnswerIndex--;
-                mMainField = convertField(mAnswer.get(mAnswerIndex));
-                setFieldLayout(mMainLayout, mMainField);
-            }
-        });
-
-        final ImageButton nextButton = (ImageButton) findViewById(R.id.controller_skip_next);
-        nextButton.setOnClickListener((View v) -> {
-            if (mAnswer != null && mAnswerIndex < mAnswer.size() - 1) {
-                mAnswerIndex++;
-                mMainField = convertField(mAnswer.get(mAnswerIndex));
-                setFieldLayout(mMainLayout, mMainField);
-            }
-        });
-
-        final ImageButton returnButton = (ImageButton) findViewById(R.id.controller_return);
-        returnButton.setOnClickListener((View v) -> {
-            // フィールドを最初の状態に戻す
-            mMainField = convertField(mAnswer.get(0));
+    @OnClick(R.id.controller_skip_previous)
+    void onClickPreviousButton() {
+        if (mAnswer != null && mAnswerTurn > 0) {
+            mAnswerTurn--;
+            mMainField = convertField(mAnswer.get(mAnswerTurn));
             setFieldLayout(mMainLayout, mMainField);
+        }
+    }
 
-            mAnswer = null;
-            mAnswerIndex = 0;
-            mControlLayout.setVisibility(View.GONE);
-            mSelectLayout.setVisibility(View.VISIBLE);
-            mActionLayout.setVisibility(View.VISIBLE);
-        });
+    @OnClick(R.id.controller_skip_next)
+    void onClickNextButton() {
+        if (mAnswer != null && mAnswerTurn < mAnswer.size() - 1) {
+            mAnswerTurn++;
+            mMainField = convertField(mAnswer.get(mAnswerTurn));
+            setFieldLayout(mMainLayout, mMainField);
+        }
+    }
 
-        final ImageButton getButton = (ImageButton) findViewById(R.id.controller_get);
-        getButton.setOnClickListener((View v) -> {
-            final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_get_chain_message, REQUEST_CODE_GET_CHAIN);
-            deleteFragment.show(getSupportFragmentManager(), null);
-        });
+    @OnClick(R.id.controller_return)
+    void onClickReturnButton() {
+        // フィールドを最初の状態に戻す
+        mMainField = convertField(mAnswer.get(0));
+        setFieldLayout(mMainLayout, mMainField);
 
-        final ImageButton deleteButton = (ImageButton) findViewById(R.id.controller_delete);
-        deleteButton.setOnClickListener((View v) -> {
-            final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_delete_message, REQUEST_CODE_DELETE);
-            deleteFragment.show(getSupportFragmentManager(), null);
-        });
+        mAnswer = null;
+        mAnswerTurn = 0;
+        mControlLayout.setVisibility(View.GONE);
+        mSelectLayout.setVisibility(View.VISIBLE);
+        mActionLayout.setVisibility(View.VISIBLE);
+    }
+
+    @OnClick(R.id.controller_get)
+    void onClickGetButton() {
+        final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_get_chain_message, REQUEST_CODE_GET_CHAIN);
+        deleteFragment.show(getSupportFragmentManager(), null);
+    }
+
+    @OnClick(R.id.controller_delete)
+    void onClickDeleteButton() {
+        final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_delete_message, REQUEST_CODE_DELETE);
+        deleteFragment.show(getSupportFragmentManager(), null);
     }
 
     @Override
     public void onPositiveClick(int requestCode) {
         switch (requestCode) {
             case REQUEST_CODE_GET_CHAIN:
-                if (checkNextarray(mNextField)) {
+                if (isCorrectNextField(mNextField)) {
                     final int[][] main = convertField(mMainField);
                     final int[] next = convertNext(convertField(mNextField));
                     mAnswer = new ChainCalculator(main, next, mClearCondition).getAnswer();
@@ -194,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
      * @param next ネクスト
      * @return 整形後のネクスト
      */
-    private boolean checkNextarray(final Puyo[][] next) {
+    private boolean isCorrectNextField(final Puyo[][] next) {
         // ネクストがあるか
         if (next[0][0] == Puyo.NONE || next[1][0] == Puyo.NONE) {
             Toast.makeText(this, R.string.toast_no_next, Toast.LENGTH_SHORT).show();
@@ -307,9 +306,4 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         }
         return array;
     }
-
-//    static {
-//        System.loadLibrary("native-lib");
-//    }
-//    public native int[] getNode(final int[] main, final int[] next);
 }
