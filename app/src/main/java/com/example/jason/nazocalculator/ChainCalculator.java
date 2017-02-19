@@ -26,6 +26,8 @@ class ChainCalculator {
         final ArrayList<int[][]> answer = new ArrayList<>();
         final int[] nodes = getAnswerNodes(mMainField, mNextField, mClearCondition);
 
+        if (nodes == null) return null;
+
         answer.add(copyArray(mMainField));
         for (int index : nodes) {
             PuyoController.putPuyo(mMainField, mNextField, index);
@@ -58,44 +60,56 @@ class ChainCalculator {
         final int[] nodes = new int[next.length / 2];
         final int clearNum = condition.getNum();
         final ClearCondition.Condition clearCondition = condition.getCondition();
-        int subChainNum;
-        int[][] subMain = copyArray(main);
-        int[] subNext = copyArray(next);
+        boolean isAnswer = false;
 
         search:
         while (nodes[0] <= maxNodeNum) {
+            int[][] subMain = copyArray(main);
+            int[] subNext = copyArray(next);
+
             for (int index = 0; index < nodes.length; index++) {
                 PuyoController.putPuyo(subMain, subNext, nodes[index]);
-                subChainNum = getChainNum(subMain);
+                final int subChainNum = getChainNum(subMain);
 
                 switch (clearCondition) {
                     case ALL:
-                        if (isAllClear(subMain)) break search;
+                        if (isAllClear(subMain)) {
+                            isAnswer = true;
+                            break search;
+                        }
                         break;
                     case SOME_PUYO_ALL:
-                        if (isColorClear(subMain, clearNum)) break search;
+                        if (isColorClear(subMain, clearNum)) {
+                            isAnswer = true;
+                            break search;
+                        }
                         break;
                     case CHAIN_NUM:
-                        if (subChainNum >= clearNum) break search;
+                        if (subChainNum >= clearNum) {
+                            isAnswer = true;
+                            break search;
+                        }
                         break;
                     case CHAIN_NUM_ALL:
-                        if (subChainNum >= clearNum && isAllClear(subMain)) break search;
+                        if (subChainNum >= clearNum && isAllClear(subMain)) {
+                            isAnswer = true;
+                            break search;
+                        }
                         break;
                     default:
                         throw new IllegalArgumentException("ClearCondition is not correct");
                 }
 
 //                if (subChainNum > 0) {
-//                    subMain = copyArray(main);
-//                    subNext = copyArray(next);
 //                    stepNextNode(nodes, index);
 //                    continue search;
 //                }
             }
-            subMain = copyArray(main);
-            subNext = copyArray(next);
             stepNextNode(nodes, nodes.length - 1);
         }
+
+        if (!isAnswer) return null;
+
         return nodes;
     }
 
@@ -151,9 +165,7 @@ class ChainCalculator {
     private static boolean isAllClear(final int[][] field) {
         for (int x = 0; x < field.length; x++) {
             for (int y = 0; y < field[0].length; y++) {
-                if (field[x][y] != 0) {
-                    return false;
-                }
+                if (field[x][y] != 0) return false;
             }
         }
         return true;
@@ -169,9 +181,7 @@ class ChainCalculator {
     private static boolean isColorClear(final int[][] field, final int color) {
         for (int x = 0; x < field.length; x++) {
             for (int y = 0; y < field[0].length; y++) {
-                if (field[x][y] == color) {
-                    return false;
-                }
+                if (field[x][y] == color) return false;
             }
         }
         return true;

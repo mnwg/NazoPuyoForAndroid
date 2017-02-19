@@ -99,10 +99,8 @@ class PuyoController {
      * @param field フィールド
      */
     static void dropPuyo(final int[][] field) {
-        int empty;
-
         for (int x = 0; x < field.length; x++) {
-            empty = -1;
+            int empty = -1;
 
             for (int y = field[0].length - 1; y >= 0; y--) {
                 if (empty != -1 && field[x][y] != 0) {
@@ -127,33 +125,19 @@ class PuyoController {
     static boolean deletePuyo(final int[][] main, final int[][] preField) {
         final int DELETE_NUM = 4;
         boolean isDelete = false;
-        boolean[][] connect = new boolean[main.length][main[0].length];
 
         for (int x = 0; x < main.length; x++) {
             for (int y = 0; y < main[0].length; y++) {
-                if (main[x][y] != preField[x][y] && main[x][y] > 0) {
-                    initField(connect);
-                    if (addConnectArray(main, connect, x, y, 1) >= DELETE_NUM) {
-                        isDelete = true;
-                        deletePointPuyo(main, connect);
-                    }
+                if (main[x][y] == preField[x][y] || main[x][y] <= 0) continue;
+
+                final boolean[][] connect = new boolean[main.length][main[0].length];
+                if (addConnectArray(main, connect, x, y, 1) >= DELETE_NUM) {
+                    isDelete = true;
+                    deletePointPuyo(main, connect);
                 }
             }
         }
         return isDelete;
-    }
-
-    /**
-     * boolean配列を初期化する
-     *
-     * @param field boolean配列
-     */
-    private static void initField(final boolean[][] field) {
-        for (int x = 0; x < field.length; x++) {
-            for (int y = 0; y < field[0].length; y++) {
-                field[x][y] = false;
-            }
-        }
     }
 
     /**

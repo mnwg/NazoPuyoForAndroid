@@ -6,6 +6,7 @@
     <string name="toast_contain_kata">ネクストに固ぷよが含まれています</string>
     <string name="toast_one_side_puyo">片側のみのツモがあります</string>
     <string name="toast_divide_puyo">ネクストが分離しています</string>
+    <string name="toast_no_answer">答えが見つかりませんでした。</string>
 
     <string name="dialog_positive">実行</string>
     <string name="dialog_negative">取消</string>

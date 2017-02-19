@@ -1,5 +1,6 @@
 package com.example.jason.nazocalculator;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,10 @@ import java.util.ArrayList;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import rx.Observable;
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity implements AlertDialogFragment.OnDialogClickListener {
 
@@ -44,11 +49,6 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
-        // TODO: 非同期処理でプログレスバー表示
-        mProgressBarLayout.setVisibility(View.GONE);
-        // 連鎖取得までビュー非表示
-        mControlLayout.setVisibility(View.GONE);
 
         initPuyoField(mMainField);
         initPuyoField(mNextField);
@@ -166,15 +166,48 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
     public void onPositiveClick(int requestCode) {
         switch (requestCode) {
             case REQUEST_CODE_GET_CHAIN:
-                if (isCorrectNextField(mNextField)) {
-                    final int[][] main = convertField(mMainField);
-                    final int[] next = convertNext(convertField(mNextField));
-                    mAnswer = new ChainCalculator(main, next, mClearCondition).getAnswer();
-
-                    mSelectLayout.setVisibility(View.GONE);
-                    mActionLayout.setVisibility(View.GONE);
-                    mControlLayout.setVisibility(View.VISIBLE);
+                if (!isCorrectNextField(mNextField)) {
+                    break;
                 }
+
+                mProgressBarLayout.setVisibility(View.VISIBLE);
+                Observable.just(1)
+                        .subscribeOn(Schedulers.newThread())
+                        .map(integer -> {
+                            final int[][] main = convertField(mMainField);
+                            final int[] next = convertNext(convertField(mNextField));
+                            mAnswer = new ChainCalculator(main, next, mClearCondition).getAnswer();
+                            return null;
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Observer<Object>() {
+                            @Override
+                            public void onCompleted() {
+                                if (mAnswer == null) {
+                                    Toast.makeText(MainActivity.this, R.string.toast_no_answer, Toast.LENGTH_SHORT).show();
+                                    mProgressBarLayout.setVisibility(View.GONE);
+                                    return;
+                                }
+
+                                mProgressBarLayout.setVisibility(View.GONE);
+                                mSelectLayout.setVisibility(View.GONE);
+                                mActionLayout.setVisibility(View.GONE);
+                                mControlLayout.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                mProgressBarLayout.setVisibility(View.GONE);
+                                mSelectLayout.setVisibility(View.GONE);
+                                mActionLayout.setVisibility(View.GONE);
+                                mControlLayout.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
+                            public void onNext(Object o) {
+                                // do nothing
+                            }
+                        });
                 break;
             case REQUEST_CODE_DELETE:
                 initPuyoField(mMainField);
@@ -290,16 +323,16 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
      * @return 整形後のネクスト配列
      */
     private static int[] convertNext(final int[][] next) {
-        int count = next[0].length;
-        for (int index = 0; index < next[0].length; index++) {
-            if (next[0][index] == 0) {
-                count = index;
+        int index = next[0].length;
+        for (int i = 0; i < next[0].length; i++) {
+            if (next[0][i] == 0) {
+                index = i;
                 break;
             }
         }
 
-        final int[] array = new int[count * 2];
-        for (int y = 0; y < count; y++) {
+        final int[] array = new int[index * 2];
+        for (int y = 0; y < index; y++) {
             for (int x = 0; x < next.length; x++) {
                 array[y * next.length + x] = next[x][y];
             }
