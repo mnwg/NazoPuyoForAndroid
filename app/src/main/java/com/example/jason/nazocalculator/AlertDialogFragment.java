@@ -11,7 +11,6 @@ import android.support.v7.app.AppCompatDialogFragment;
 /**
  * 注意を促すダイアログ
  */
-
 public class AlertDialogFragment extends AppCompatDialogFragment {
 
     /**
@@ -27,7 +26,7 @@ public class AlertDialogFragment extends AppCompatDialogFragment {
         void onPositiveClick(final int requestCode);
     }
 
-    private static final String TITLE_KEY = "title_key";
+    private static final String MESSAGE_KEY = "message_key";
     private static final String REQUEST_CODE_KEY = "request_code_key";
     private static OnDialogClickListener mListener;
 
@@ -35,16 +34,16 @@ public class AlertDialogFragment extends AppCompatDialogFragment {
      * {@link AlertDialogFragment}のインスタンス生成
      *
      * @param context     {@link Context}
-     * @param title       表示するタイトルのリソースID
+     * @param message     表示するメッセージのリソースID
      * @param requestCode リクエストコード
-     * @return インスタンス
+     * @return {@link AlertDialogFragment}のインスタンス
      */
-    static AlertDialogFragment newInstance(final Context context, final int title, final int requestCode) {
+    static AlertDialogFragment newInstance(final Context context, final int message, final int requestCode) {
         mListener = (OnDialogClickListener) context;
 
         final AlertDialogFragment fragment = new AlertDialogFragment();
         final Bundle bundle = new Bundle();
-        bundle.putInt(TITLE_KEY, title);
+        bundle.putInt(MESSAGE_KEY, message);
         bundle.putInt(REQUEST_CODE_KEY, requestCode);
         fragment.setArguments(bundle);
         return fragment;
@@ -53,11 +52,11 @@ public class AlertDialogFragment extends AppCompatDialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final int title = getArguments().getInt(TITLE_KEY);
+        final int message = getArguments().getInt(MESSAGE_KEY);
         final int requestCode = getArguments().getInt(REQUEST_CODE_KEY);
 
         return new AlertDialog.Builder(getActivity())
-                .setTitle(title)
+                .setMessage(message)
                 .setPositiveButton(R.string.dialog_positive, (DialogInterface dialogInterface, int value) -> mListener.onPositiveClick(requestCode))
                 .setNegativeButton(R.string.dialog_negative, (DialogInterface dialogInterface, int value) -> {
                     // do nothing

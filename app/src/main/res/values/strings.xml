@@ -7,9 +7,11 @@
     <string name="toast_one_side_puyo">片側のみのツモがあります</string>
     <string name="toast_divide_puyo">ネクストが分離しています</string>
     <string name="toast_no_answer">答えが見つかりませんでした。</string>
+    <string name="toast_not_get_answer">答えの取得に失敗しました。</string>
 
     <string name="dialog_positive">実行</string>
     <string name="dialog_negative">取消</string>
     <string name="dialog_get_chain_message">連鎖を取得しますか？</string>
     <string name="dialog_delete_message">盤面を初期化しますか？</string>
+    <string name="dialog_return_message">設定画面に戻りますか？</string>
 </resources>

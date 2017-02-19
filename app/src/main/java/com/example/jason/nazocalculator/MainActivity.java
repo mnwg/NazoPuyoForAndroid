@@ -1,6 +1,5 @@
 package com.example.jason.nazocalculator;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +23,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
 
     private static final int REQUEST_CODE_GET_CHAIN = 0;
     private static final int REQUEST_CODE_DELETE = 1;
+    private static final int REQUEST_CODE_RETURN = 2;
     private Puyo[][] mMainField = new Puyo[6][13];
     private Puyo[][] mNextField = new Puyo[2][10];
     private Puyo mCheckedPuyo = Puyo.NONE;
@@ -139,15 +139,8 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
 
     @OnClick(R.id.controller_return)
     void onClickReturnButton() {
-        // フィールドを最初の状態に戻す
-        mMainField = convertField(mAnswer.get(0));
-        setFieldLayout(mMainLayout, mMainField);
-
-        mAnswer = null;
-        mAnswerTurn = 0;
-        mControlLayout.setVisibility(View.GONE);
-        mSelectLayout.setVisibility(View.VISIBLE);
-        mActionLayout.setVisibility(View.VISIBLE);
+        final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_return_message, REQUEST_CODE_RETURN);
+        deleteFragment.show(getSupportFragmentManager(), null);
     }
 
     @OnClick(R.id.controller_get)
@@ -169,45 +162,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
                 if (!isCorrectNextField(mNextField)) {
                     break;
                 }
-
-                mProgressBarLayout.setVisibility(View.VISIBLE);
-                Observable.just(1)
-                        .subscribeOn(Schedulers.newThread())
-                        .map(integer -> {
-                            final int[][] main = convertField(mMainField);
-                            final int[] next = convertNext(convertField(mNextField));
-                            mAnswer = new ChainCalculator(main, next, mClearCondition).getAnswer();
-                            return null;
-                        })
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Observer<Object>() {
-                            @Override
-                            public void onCompleted() {
-                                if (mAnswer == null) {
-                                    Toast.makeText(MainActivity.this, R.string.toast_no_answer, Toast.LENGTH_SHORT).show();
-                                    mProgressBarLayout.setVisibility(View.GONE);
-                                    return;
-                                }
-
-                                mProgressBarLayout.setVisibility(View.GONE);
-                                mSelectLayout.setVisibility(View.GONE);
-                                mActionLayout.setVisibility(View.GONE);
-                                mControlLayout.setVisibility(View.VISIBLE);
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                mProgressBarLayout.setVisibility(View.GONE);
-                                mSelectLayout.setVisibility(View.GONE);
-                                mActionLayout.setVisibility(View.GONE);
-                                mControlLayout.setVisibility(View.VISIBLE);
-                            }
-
-                            @Override
-                            public void onNext(Object o) {
-                                // do nothing
-                            }
-                        });
+                getAnswer();
                 break;
             case REQUEST_CODE_DELETE:
                 initPuyoField(mMainField);
@@ -215,9 +170,62 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
                 setFieldLayout(mMainLayout, mMainField);
                 setFieldLayout(mNextLayout, mNextField);
                 break;
+            case REQUEST_CODE_RETURN:
+                mMainField = convertField(mAnswer.get(0));
+                setFieldLayout(mMainLayout, mMainField);
+
+                mAnswer = null;
+                mAnswerTurn = 0;
+                mControlLayout.setVisibility(View.GONE);
+                mSelectLayout.setVisibility(View.VISIBLE);
+                mActionLayout.setVisibility(View.VISIBLE);
+                break;
             default:
                 break;
         }
+    }
+
+    /**
+     * 非同期処理で答えを取得
+     * <p>
+     * UI変更もしています。
+     */
+    private void getAnswer() {
+        mProgressBarLayout.setVisibility(View.VISIBLE);
+        Observable.just(1)
+                .subscribeOn(Schedulers.newThread())
+                .map(integer -> {
+                    final int[][] main = convertField(mMainField);
+                    final int[] next = convertNext(convertField(mNextField));
+                    mAnswer = new ChainCalculator(main, next, mClearCondition).getAnswer();
+                    return null;
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<Object>() {
+                    @Override
+                    public void onCompleted() {
+                        if (mAnswer == null) {
+                            Toast.makeText(MainActivity.this, R.string.toast_no_answer, Toast.LENGTH_SHORT).show();
+                            mProgressBarLayout.setVisibility(View.GONE);
+                            return;
+                        }
+                        mProgressBarLayout.setVisibility(View.GONE);
+                        mSelectLayout.setVisibility(View.GONE);
+                        mActionLayout.setVisibility(View.GONE);
+                        mControlLayout.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(MainActivity.this, R.string.toast_not_get_answer, Toast.LENGTH_SHORT).show();
+                        mProgressBarLayout.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onNext(Object o) {
+                        // do nothing
+                    }
+                });
     }
 
     /**

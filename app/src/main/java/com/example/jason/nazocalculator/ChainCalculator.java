@@ -100,6 +100,7 @@ class ChainCalculator {
                         throw new IllegalArgumentException("ClearCondition is not correct");
                 }
 
+//                途中で連鎖する問題は解けませんが、枝切して計算が高速になります。
 //                if (subChainNum > 0) {
 //                    stepNextNode(nodes, index);
 //                    continue search;
