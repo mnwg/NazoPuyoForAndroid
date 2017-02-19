@@ -58,9 +58,7 @@ public class AlertDialogFragment extends AppCompatDialogFragment {
         return new AlertDialog.Builder(getActivity())
                 .setMessage(message)
                 .setPositiveButton(R.string.dialog_positive, (DialogInterface dialogInterface, int value) -> mListener.onPositiveClick(requestCode))
-                .setNegativeButton(R.string.dialog_negative, (DialogInterface dialogInterface, int value) -> {
-                    // do nothing
-                })
+                .setNegativeButton(R.string.dialog_negative, null)
                 .create();
     }
 }

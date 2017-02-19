@@ -6,31 +6,34 @@ package com.example.jason.nazocalculator;
 
 enum Puyo {
     /** 赤ぷよ */
-    RED(1, R.drawable.puyo_red),
+    RED("赤ぷよ", 1, R.drawable.puyo_red),
     /** 青ぷよ */
-    BLUE(2, R.drawable.puyo_blue),
+    BLUE("青ぷよ", 2, R.drawable.puyo_blue),
     /** 緑ぷよ */
-    GREEN(3, R.drawable.puyo_green),
+    GREEN("緑ぷよ", 3, R.drawable.puyo_green),
     /** 黃ぷよ */
-    YELLOW(4, R.drawable.puyo_yellow),
+    YELLOW("黃ぷよ", 4, R.drawable.puyo_yellow),
     /** 紫ぷよ */
-    PURPLE(5, R.drawable.puyo_purple),
+    PURPLE("紫ぷよ", 5, R.drawable.puyo_purple),
     /** おじゃまぷよ */
-    OJAMA(-1, R.drawable.puyo_ojama),
+    OJAMA("おじゃまぷよ", -1, R.drawable.puyo_ojama),
     /** 固ぷよ */
-    KATA(-2, R.drawable.puyo_kata),
+    KATA("固ぷよ", -2, R.drawable.puyo_kata),
     /** 空白 */
-    NONE(0, R.drawable.puyo_none);
+    NONE("空白", 0, R.drawable.puyo_none);
 
+    /** 名前 */
+    final String NAME;
     /** 対応する数 */
     final int NUM;
     /** Drawableコード */
     private final int mDrawable;
 
     /** コンストラクタ */
-    Puyo(final int num, final int drawable) {
-        this.NUM = num;
-        this.mDrawable = drawable;
+    Puyo(final String name, final int num, final int drawable) {
+        NAME = name;
+        NUM = num;
+        mDrawable = drawable;
     }
 
     /** Drawableコード取得 */

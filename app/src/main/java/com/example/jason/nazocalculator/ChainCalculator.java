@@ -58,7 +58,7 @@ class ChainCalculator {
     static int[] getAnswerNodes(final int[][] main, final int[] next, final ClearCondition condition) {
         final int maxNodeNum = 21;
         final int[] nodes = new int[next.length / 2];
-        final int clearNum = condition.getNum();
+        final int clearNum = condition.NUM;
         final ClearCondition.Condition clearCondition = condition.getCondition();
         boolean isAnswer = false;
 
