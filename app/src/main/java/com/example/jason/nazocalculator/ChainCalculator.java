@@ -64,8 +64,8 @@ class ChainCalculator {
 
         search:
         while (nodes[0] <= maxNodeNum) {
-            int[][] subMain = copyArray(main);
-            int[] subNext = copyArray(next);
+            final int[][] subMain = copyArray(main);
+            final int[] subNext = copyArray(next);
 
             for (int index = 0; index < nodes.length; index++) {
                 PuyoController.putPuyo(subMain, subNext, nodes[index]);

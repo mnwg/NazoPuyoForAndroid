@@ -19,17 +19,16 @@ import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends AppCompatActivity implements AlertDialogFragment.OnDialogClickListener {
+public class MainActivity extends AppCompatActivity implements AlertDialogFragment.OnDialogClickListener, SettingClearConditionFragment.OnClearConditionDialogClickListener {
 
-    private static final int REQUEST_CODE_GET_CHAIN = 0;
-    private static final int REQUEST_CODE_DELETE = 1;
-    private static final int REQUEST_CODE_RETURN = 2;
+    private static final int REQUEST_CODE_DELETE = 0;
+    private static final int REQUEST_CODE_RETURN = 1;
     private Puyo[][] mMainField = new Puyo[6][13];
     private Puyo[][] mNextField = new Puyo[2][10];
     private Puyo mCheckedPuyo = Puyo.NONE;
     private ClearCondition mClearCondition;
     private ArrayList<int[][]> mAnswer;
-    private int mAnswerTurn = 0;
+    private int mAnswerTurn;
 
     @BindView(R.id.main_field)
     LinearLayout mMainLayout;
@@ -45,7 +44,7 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
     LinearLayout mProgressBarLayout;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
@@ -55,9 +54,6 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         setFieldLayout(mMainLayout, mMainField);
         setFieldLayout(mNextLayout, mNextField);
         setSelectField();
-
-        // TODO: クリア条件設定作成
-        mClearCondition = new ClearCondition(ClearCondition.Condition.ALL, 0);
     }
 
     /**
@@ -139,14 +135,14 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
 
     @OnClick(R.id.controller_return)
     void onClickReturnButton() {
-        final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_return_message, REQUEST_CODE_RETURN);
-        deleteFragment.show(getSupportFragmentManager(), null);
+        final DialogFragment returnFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_return_message, REQUEST_CODE_RETURN);
+        returnFragment.show(getSupportFragmentManager(), null);
     }
 
     @OnClick(R.id.controller_get)
     void onClickGetButton() {
-        final DialogFragment deleteFragment = AlertDialogFragment.newInstance(MainActivity.this, R.string.dialog_get_chain_message, REQUEST_CODE_GET_CHAIN);
-        deleteFragment.show(getSupportFragmentManager(), null);
+        final DialogFragment getFragment = SettingClearConditionFragment.newInstance(this);
+        getFragment.show(getSupportFragmentManager(), null);
     }
 
     @OnClick(R.id.controller_delete)
@@ -156,14 +152,8 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
     }
 
     @Override
-    public void onPositiveClick(int requestCode) {
+    public void onPositiveClick(final int requestCode) {
         switch (requestCode) {
-            case REQUEST_CODE_GET_CHAIN:
-                if (!isCorrectNextField(mNextField)) {
-                    break;
-                }
-                getAnswer();
-                break;
             case REQUEST_CODE_DELETE:
                 initPuyoField(mMainField);
                 initPuyoField(mNextField);
@@ -185,12 +175,28 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         }
     }
 
-    /**
-     * 非同期処理で答えを取得
-     * <p>
-     * UI変更もしています。
-     */
-    private void getAnswer() {
+    @Override
+    public void onClearConditionPositiveClick(final int conditionIndex, final int conditionNumIndex) {
+        if (!isCorrectNextField(mNextField)) {
+            return;
+        }
+
+        final ClearCondition.Condition condition = ClearCondition.Condition.values()[conditionIndex];
+        switch (condition) {
+            case ALL:
+                mClearCondition = new ClearCondition(condition, 0);
+                break;
+            case SOME_PUYO_ALL:
+                mClearCondition = new ClearCondition(condition, Puyo.values()[conditionNumIndex].NUM);
+                break;
+            case CHAIN_NUM:
+            case CHAIN_NUM_ALL:
+                mClearCondition = new ClearCondition(condition, conditionNumIndex + 1);
+                break;
+            default:
+                throw new IllegalArgumentException("クリア条件が不正な値です。");
+        }
+
         mProgressBarLayout.setVisibility(View.VISIBLE);
         Observable.just(1)
                 .subscribeOn(Schedulers.newThread())
@@ -216,13 +222,13 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
                     }
 
                     @Override
-                    public void onError(Throwable e) {
+                    public void onError(final Throwable e) {
                         Toast.makeText(MainActivity.this, R.string.toast_not_get_answer, Toast.LENGTH_SHORT).show();
                         mProgressBarLayout.setVisibility(View.GONE);
                     }
 
                     @Override
-                    public void onNext(Object o) {
+                    public void onNext(final Object o) {
                         // do nothing
                     }
                 });
@@ -348,3 +354,5 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
         return array;
     }
 }
+// TODO: プログレスバーをキャンセルできるようにする
+// TODO: ボタン押下時にフィードバックがほしい

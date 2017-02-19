@@ -1,5 +1,7 @@
 <resources>
     <dimen name="main_margin">5dp</dimen>
+    <dimen name="setting_padding">10dp</dimen>
+
     <dimen name="square_size">32dp</dimen>
     <dimen name="icon_size">64dp</dimen>
 </resources>
