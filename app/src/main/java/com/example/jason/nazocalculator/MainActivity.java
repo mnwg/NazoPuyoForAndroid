@@ -63,8 +63,10 @@ public class MainActivity extends AppCompatActivity implements AlertDialogFragme
      * @param field        配列
      */
     private void setFieldLayout(final LinearLayout linearLayout, final Puyo[][] field) {
+        // TODO: コードでレイアウトするときは、ちゃんとresから読み込むか、dimenを考慮してあげないと、解像度違う端末でうまく表示できないです。
         final int PADDING = 5;
 
+        // TODO: レイアウトの処理が特殊なのであれば、何かしらのViewGroupを継承とかして、そういうViewを作ってしまえば、（表示はViewに任せる）、Activityのコードがもっとシンプルになると思います。
         linearLayout.removeAllViews();
         for (int y = 0; y < field[0].length; y++) {
             final LinearLayout layout = new LinearLayout(this);

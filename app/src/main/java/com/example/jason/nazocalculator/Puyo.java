@@ -5,6 +5,7 @@ package com.example.jason.nazocalculator;
  */
 
 enum Puyo {
+         // TODO: 多言語化考慮するなら、文字列はresに定義する
     /** 赤ぷよ */
     RED("赤ぷよ", 1, R.drawable.puyo_red),
     /** 青ぷよ */
@@ -28,6 +29,8 @@ enum Puyo {
     final int NUM;
     /** Drawableコード */
     private final int mDrawable;
+        // TODO: publicの定数っぽい名称と、privateの変数っぽい名称でgetter用意の差が、なんかしっくりきません。
+        // 個人的には、enumは定義みたいなものなので、publicの定数っぽい名称で、フィールド直接参照でもいいかなと思ってます。
 
     /** コンストラクタ */
     Puyo(final String name, final int num, final int drawable) {

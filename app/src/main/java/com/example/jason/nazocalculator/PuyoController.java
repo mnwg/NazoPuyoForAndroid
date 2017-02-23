@@ -15,11 +15,13 @@ class PuyoController {
      * @param place 設置場所
      * @return 設置したかを返却
      */
+    // TODO: PuyoControllerというクラス名から、ぷよを操作するのは自明なので、メソッド名はputみたいなシンプルにしても良いと思います。
     static boolean putPuyo(final int[][] main, final int[] next, int place) {
         if (next[0] == 0 || next[1] == 0) {
             return false;
         }
 
+        // TODO: 細かいロジックはわかりませんが、このswitch文、ifの方がシンプルになりそうに見えるのですが。。
         switch (place) {
             case 0:
             case 1:
@@ -86,6 +88,7 @@ class PuyoController {
      * @param next ネクスト配列
      */
     private static void stepNextArray(final int[] next) {
+        // TODO: 定義はメソッド内でしな方が良いです。
         final int NEXT_NUM = 2;
 
         System.arraycopy(next, 2, next, 0, next.length - NEXT_NUM);

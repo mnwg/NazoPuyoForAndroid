@@ -33,9 +33,12 @@ public class SettingClearConditionFragment extends AppCompatDialogFragment {
          * @param conditionNumIndex 条件に関連する数のインデックス
          */
         void onClearConditionPositiveClick(final int conditionIndex, final int conditionNumIndex);
+        // TODO: ここまで用途を特定したダイアログとして作るのであれば、Positiveとかじゃなく、普通にこのボタンが押された意味で命名してしまって良いと思います。
     }
 
+    // TODO: static Listener ダメゼッタイ
     private static OnClearConditionDialogClickListener mListener;
+    // TODO: getSelectedItemPositionしたいだけっぽいので、AdapterViewみたいに上位のクラスで参照保持しておくと、レイアウトSpinnerから変えた時もここのコード変えずにすみます
     private Spinner mConditionSpinner;
     private Spinner mConditionNumSpinner;
 
@@ -51,6 +54,7 @@ public class SettingClearConditionFragment extends AppCompatDialogFragment {
     }
 
 
+    // TODO: 要らないライフサイクルは書かなくていいんじゃないかと。
     @Override
     public void onCreate(@Nullable final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +83,14 @@ public class SettingClearConditionFragment extends AppCompatDialogFragment {
      * 初期設定
      */
     private void init(final View view) {
+        // TODO: なぜ定義をここにしているのか。こういうアプリ全般に関わる定義みたいのは、定義まとめるクラスみたいにしてもいいかもしれません。
         final int MAX_CHAIN_NUM = 18;
+
+        // TODO: メソッドが長いので、privateメソッド細かく分けても読みやすいかもしれません。createXxxxAdapterとか。
+
+        // TODO: 上の２つのアダプタは、ここで事前に作る必要ありますか？可読性の面でも、もっと使う直前に作ると良いと思います。
+
+        // TODO: あと、この辺のリスト作ったり、変換したりする処理、Rxでやりやすそうな感じしますね。せっかくなら。
 
         final ArrayAdapter<String> puyoAdapter = new ArrayAdapter<>(getContext(), R.layout.support_simple_spinner_dropdown_item);
         for (Puyo puyo : Puyo.values()) {
@@ -107,6 +118,7 @@ public class SettingClearConditionFragment extends AppCompatDialogFragment {
             @Override
             public void onItemSelected(final AdapterView<?> adapterView, final View view, final int i, final long l) {
                 final Spinner spinner = (Spinner) adapterView;
+                // TODO: getSelectedItemは、Spinnerにキャストしなくてもできる気がします。
                 final String title = (String) spinner.getSelectedItem();
 
                 if (TextUtils.equals(title, ClearCondition.Condition.ALL.TITLE)) {

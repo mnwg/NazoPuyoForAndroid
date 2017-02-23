@@ -6,6 +6,9 @@ import java.util.ArrayList;
  * 連鎖配列を計算
  */
 class ChainCalculator {
+    // TODO: 最初の方のメソッドだけインスタンスメソッドで、あとはクラスメソッドになっていますが、
+    // calculatorとして、インスタンス化して使う機能と、しないで使う機能がわかりにくい様な気がします。
+    // インスタンス化しないとできない機能が、他のUtil的なメソッドとちょっと毛色が違ったりするのであれば、クラスを分けたりしても良いと思います。
 
     private int[][] mMainField;
     private int[] mNextField;

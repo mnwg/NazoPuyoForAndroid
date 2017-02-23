@@ -5,6 +5,7 @@ package com.example.jason.nazocalculator;
  */
 class ClearCondition {
 
+    // TODO: 多言語対応を視野にいれるのであれば、文字列はresに定義しておくべきです。
     /** 条件 */
     enum Condition {
         /** ぷよ全て消すべし */
@@ -26,6 +27,9 @@ class ClearCondition {
             MESSAGE = message;
         }
     }
+
+    // TODO: mConditionでgetter公開と、NUMで直接参照の違いはなんですかね。
+    // enumは定数っぽい名前の付け方して変数直接参照も良いかなと思いますが、データクラスは普通のクラスっぽく作っておくと良いのではないかと思います。
 
     /** 条件 */
     private final Condition mCondition;

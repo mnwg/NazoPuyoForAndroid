@@ -7,6 +7,7 @@
     android:background="@color/main_background"
     tools:context="com.example.jason.nazocalculator.MainActivity">
 
+    <!-- TODO: あんまり子Viewたちの相対位置指定されてる様に見えないのですが、FrameLayoutにgravityかけるとかの方がどこにあるかわかりやすかったりしますか？ -->
     <LinearLayout
         android:id="@+id/main_field"
         android:layout_width="wrap_content"
